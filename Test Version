@@ -1,0 +1,106 @@
+
+  
+export default {
+  async fetch(request) {
+    const response = await fetch(`http://cl.fthegov.eu.org/output.txt`);
+    const decodingResponse = await response.text();
+    const subLinks = decodingResponse.split('\n');
+    const mciIPs = [
+              "23.227.60.24",
+              "23.227.60.103",
+              "104.31.16.9",
+              "23.227.60.60",
+              "23.227.60.184",
+              "203.30.189.228",
+              "104.17.86.86",
+              "104.18.14.32",
+              "104.23.139.0",
+              "203.29.53.53",
+              "203.23.106.106",
+              "104.22.38.38"
+            ]
+            const mtnIPs = [ 
+              "104.21.77.206",
+              "8.208.79.207",
+              "8.208.26.32",
+              "8.208.26.224",
+              "104.19.66.212",
+              "172.67.213.145",
+              "172.64.142.114",
+              "104.21.214.187",
+              "104.19.23.30",
+              "104.20.220.1",
+              "172.67.101.32",
+              "162.159.255.243",
+              "172.64.165.106"
+            ]
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function replaceAndNumber(link, link2='', ipArray, label, counter) {
+      return link.replace(/(?<=@)[^:]+(?=[:@])/g, ipArray[counter])
+                 .replace(/#[^&]+/, `#${label} (${counter + 1})`);
+    }
+
+    const url = new URL(request.url);
+    const pathParts = url.pathname.replace(/^\/|\/$/g, "").split("/");
+    const type = pathParts[0].toLowerCase();
+
+    let configList = [];
+
+    if (type === "mtn") {
+      let countingConfig = 0;
+      for (const mtnIP of mtnIPs) {
+        configList.push(replaceAndNumber(subLinks[0], mtnIP, 'MTN-Family', countingConfig));
+        countingConfig++;
+      }
+    } else if (type === "mci") {
+      let countingConfig = 0;
+      for (const mciIP of mciIPs) {
+        configList.push(replaceAndNumber(subLinks[0], mciIP, 'MCI-Family', countingConfig));
+        countingConfig++;
+      }
+    } else if (type === "mine") {
+      let countingConfig = 0;
+      for (const mtnIP of mtnIPs) {
+        configList.push(replaceAndNumber(subLinks[1], mtnIP, 'MTN-Mine', countingConfig));
+        countingConfig++;
+      }
+
+    } else if (type === "ahmad") {
+      let countingConfig = 0;
+      for (const mciIP of mciIPs) {
+        configList.push(replaceAndNumber(subLinks[2], mciIP, 'MCI-Ahmad', countingConfig));
+        countingConfig++;
+      }
+    }else if (type === "trojan") {
+      let countingConfig = 0;
+      for (const mtnIP of mtnIPs) {
+        configList.push(replaceAndNumber(subLinks[10],subLinks[7], mtnIP, 'MTN-Mine', countingConfig));
+        countingConfig++;
+      }
+    }else if (type === "reality") {
+      let countingConfig = 0;
+        configList.push(replaceAndNumber(subLinks[13],null,'Reality-Mine', countingConfig));
+        countingConfig++;
+    } else {
+       return new Response("امیدت به خدا باشه، کصخلیت خوب میشه")
+    }
+
+    shuffle(configList);
+
+    const responseText = configList.join("\n");
+    const encodedResponse = btoa(responseText);
+
+    return new Response(encodedResponse, {
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+}
+
