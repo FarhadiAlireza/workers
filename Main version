@@ -1,0 +1,112 @@
+export default {
+  async fetch(request) {
+    var url = new URL(request.url)
+    var pathParts = url.pathname.replace(/^\/|\/$/g, "").split("/")
+    var type = pathParts[0].toLowerCase()
+    const response = await fetch(`https://worker.fthegov.eu.org/configs.txt`)
+    const decodingRespone = await response.text()
+    const subLinks = decodingRespone.split('\n')
+      const mciIPs = [
+        "23.227.60.24",
+        "23.227.60.103",
+        "104.31.16.9",
+        "23.227.60.60",
+        "23.227.60.184",
+        "203.30.189.228",
+        "104.17.86.86",
+        "104.18.14.32",
+        "104.23.139.0",
+        "203.29.53.53",
+        "203.23.106.106",
+        "104.22.38.38"
+      ]
+      const mtnIPs = [ 
+        "104.21.77.206",
+        "8.208.79.207",
+        "8.208.26.32",
+        "8.208.26.224",
+        "104.19.66.212",
+        "172.67.213.145",
+        "172.64.142.114",
+        "104.21.214.187",
+        "104.19.23.30",
+        "104.20.220.1",
+        "172.67.101.32",
+        "162.159.255.243",
+        "172.64.165.106"
+      ]
+    function shuffle(array) {
+      for (var i = array.length - 1; i > 0; i--)
+      {
+         var j = Math.floor(Math.random() * (i + 1));
+         var temp = array[i];
+         array[i] = array[j];
+         array[j] = temp;
+      }
+          return array;
+    }
+    let configList = [];
+    if (type === "mtn") {
+      let countingMtnConfig = 1;
+      for (const mtnIP of mtnIPs) {
+        configList.push(
+          subLinks[0].replace(/(?<=@)[^:]+(?=[:@])/g, mtnIP).replace(/#[^&]+/, `#MTN-Family (${countingMtnConfig++})`)
+        );
+      }
+      shuffle(configList);
+    }
+    else if (type === "mci") {
+      let countingMciConfig = 1;
+      for (const mciIP of mciIPs) {
+        configList.push(
+          subLinks[0].replace(/(?<=@)[^:]+(?=[:@])/g, mciIP).replace(/#[^&]+/, `#MCI-Family(${countingMciConfig++})`)
+        );
+      }
+      shuffle(configList);
+    }
+    else if (type === "mine") {
+      let countingMineConfig = 1;
+      for (const myMtnIP of mtnIPs) {
+        configList.push(
+          subLinks[1].replace(/(?<=@)[^:]+(?=[:@])/g, myMtnIP).replace(/#[^&]+/, `#MTN-Mine (${countingMineConfig++})`)
+        );
+      }
+      shuffle(configList);
+    }
+
+    else if (type === "reality") {
+      const realityConfig=[""]
+        configList.push(
+          realityConfig[0].replace(/#[^&]+/, `#Reality`)
+        )
+      
+    }    
+    else if (type === "trojan") {
+      let countingMtnConfig = 1;
+      for (const mtnIP of mtnIPs) {
+        configList.push(
+          subLinks[3].replace(/(?<=@)[^:]+(?=[:@])/g, mtnIP).replace(/#[^&]+/, `#MTN-Trojan-grpc (${countingMtnConfig++})`)
+        )
+      }
+      shuffle(configList);
+
+    }
+    else if (type === "tuic") {
+      const tuicConfig=["tuic://40b5495e-e9a8-4fb8-b07f-36e2116fae4f:farhad@178.236.247.107:8443?congestion_control=bbr&alpn=h3,spdy/3.1&udp_relay_mode=native&allow_insecure=1#TUIC-USA"]
+        configList.push(tuicConfig[0])
+    }
+    else if (type === "all") {
+      const rawConfigs = [`worker.fthegov.eu.org/v2rayConfig.txt`]
+        configList.push(decodingRespone)
+    }
+    else {
+      return new Response('');
+    }
+    const responseText = configList.join("\n");
+    const encodedResponse = btoa(responseText);
+    return new Response(encodedResponse, {
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+}
+
